@@ -38,6 +38,8 @@ module.exports = {
     'unicorn/import-style': 'off',
     // Conflict with "consistent-return"
     'unicorn/no-useless-undefined': 'off',
+    // For this project this should be disabled
+    'no-console': 'off',
 
     // Copied from https://github.com/airbnb/javascript/issues/1536#issuecomment-547416680
     'unicorn/import-index': 'off',
