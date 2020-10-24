@@ -55,6 +55,6 @@ export default abstract class Command {
     return new MessageEmbed()
       .setTitle(`Command \`${this.name}\``)
       .setDescription(this.description)
-      .addField('Usage', this.usage.replace('{p}', guildData.prefix));
+      .addField('Usage', this.usage.replace(/{p}/g, guildData.prefix));
   }
 }
