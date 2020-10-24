@@ -46,6 +46,13 @@ export default class Mention extends Command {
       );
       return;
     }
+    if (data.isInQueue(message.channel.id)) {
+      this.sendError(
+        message,
+        `This channel already has a pending mention request. Wait until that one has canceled or executed.`
+      );
+      return;
+    }
 
     const waitEmbed = new MessageEmbed()
       .setTitle(`Mention request for ${args}`)

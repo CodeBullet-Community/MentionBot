@@ -42,6 +42,7 @@ export default class GuildData {
     const timeout = this.mentionQueue.get(id);
     if (!timeout) return;
     clearTimeout(timeout);
+    this.mentionQueue.delete(id);
   }
 
   deleteFromQueue(id: string): void {
