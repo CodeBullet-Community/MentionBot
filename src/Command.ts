@@ -11,7 +11,7 @@ export default abstract class Command {
 
   abstract readonly usage: string;
 
-  private readonly bot: Bot;
+  protected readonly bot: Bot;
 
   constructor(bot: Bot) {
     this.bot = bot;
@@ -31,7 +31,6 @@ export default abstract class Command {
 
   protected abstract internalExecute(message: Message, args: string): Promise<void>;
 
-  // eslint-disable-next-line class-methods-use-this
   protected sendError(messageObject: Message, message: string): Promise<Message> {
     const embed = new MessageEmbed()
       .setTitle('❌ Error occurred')
@@ -41,7 +40,6 @@ export default abstract class Command {
     return messageObject.channel.send(embed);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   protected sendReply(messageObject: Message, message: string): Promise<Message> {
     const embed = new MessageEmbed().setDescription(message);
     return messageObject.channel.send(embed);
@@ -49,7 +47,7 @@ export default abstract class Command {
 
   getHelpEmbed(guildId: Snowflake): MessageEmbed {
     return new MessageEmbed()
-      .setTitle(`Command ${this.name}`)
+      .setTitle(`Command \`${this.name}\``)
       .setDescription(this.description)
       .addField('Usage', this.usage.replace('{p}', this.bot.getPrefix(guildId)));
   }

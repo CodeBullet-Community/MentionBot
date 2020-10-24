@@ -4,7 +4,7 @@ import Command from '../Command';
 export default class Ping extends Command {
   name = 'ping';
 
-  description = 'Command to test availability';
+  description = 'Test availability';
 
   usage = '{p}ping';
 

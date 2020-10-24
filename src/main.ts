@@ -1,4 +1,5 @@
-import Bot, {BotConfig} from './Bot';
+import Bot from './Bot';
+import {BotConfig} from './config';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('console-stamp')(console);

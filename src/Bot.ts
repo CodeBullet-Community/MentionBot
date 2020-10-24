@@ -1,36 +1,12 @@
-import {Client, Collection, Message, Snowflake} from 'discord.js';
+import {Client, Collection, GuildMember, Message, Snowflake} from 'discord.js';
 
 import Command, {CommandConstructor} from './Command';
+import Mention from './commands/Mention';
 import Ping from './commands/Ping';
-
-export interface BotConfig {
-  prefix: string;
-  owners: string[];
-  guilds: {
-    [id: string]: GuildConfig | undefined;
-  };
-}
-
-export interface GuildConfig {
-  locked?: boolean;
-  prefix?: string;
-  /**
-   * Roles or users that can control the bot
-   */
-  controllers?: string[];
-  roles: {
-    [name: string]: Snowflake | undefined;
-  };
-  channels: {
-    /**
-     * Array of names that are mentionable in this channel
-     */
-    [id: string]: string[] | undefined;
-  };
-}
+import {BotConfig, GuildConfig} from './config';
 
 export default class Bot {
-  static commandConstructors: CommandConstructor[] = [Ping];
+  static commandConstructors: CommandConstructor[] = [Ping, Mention];
 
   private client!: Client;
 
@@ -38,9 +14,12 @@ export default class Bot {
 
   readonly commands: Collection<string, Command>;
 
+  private readonly mentionQueue: Collection<string, NodeJS.Timeout>;
+
   constructor(config: BotConfig) {
     this.config = config;
     this.commands = new Collection();
+    this.mentionQueue = new Collection();
     Bot.commandConstructors.forEach(constructor => {
       const command = new constructor(this);
       this.commands.set(command.name, command);
@@ -91,5 +70,42 @@ export default class Bot {
     const guild = this.config.guilds[guildId];
     if (guild?.prefix !== undefined) return guild.prefix;
     return this.config.prefix;
+  }
+
+  addToQueue(id: string, timeout: NodeJS.Timeout): void {
+    this.mentionQueue.set(id, timeout);
+  }
+
+  removeFromQueue(id: string): void {
+    const timeout = this.mentionQueue.get(id);
+    if (!timeout) return;
+    clearTimeout(timeout);
+  }
+
+  deleteFromQueue(id: string): void {
+    this.mentionQueue.delete(id);
+  }
+
+  isInQueue(id: string): boolean {
+    return this.mentionQueue.has(id);
+  }
+
+  clearQueue(): void {
+    this.mentionQueue.forEach(timeout => clearTimeout(timeout));
+    this.mentionQueue.clear();
+  }
+
+  isMemberController(member: GuildMember): boolean {
+    const isController = this.isController(member.guild.id, member.id);
+    if (isController) return true;
+    return !!member.roles.cache.find(role => this.isController(member.guild.id, role.id));
+  }
+
+  isController(guildId: Snowflake, id: Snowflake): boolean {
+    return (
+      this.config.owners.includes(id) ||
+      this.config.guilds[guildId]?.controllers?.includes(id) ||
+      false
+    );
   }
 }
