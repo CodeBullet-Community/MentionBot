@@ -4,7 +4,7 @@ export interface BotConfig {
   prefix: string;
   owners: string[];
   guilds: {
-    [id: string]: GuildConfig | undefined;
+    [id: string]: GuildConfig;
   };
 }
 
@@ -16,13 +16,13 @@ export interface GuildConfig {
    */
   controllers?: string[];
   roles: {
-    [name: string]: RoleConfig | undefined;
+    [name: string]: RoleConfig;
   };
   channels: {
     /**
      * Array of names that are mentionable in this channel
      */
-    [id: string]: string[] | undefined;
+    [id: string]: string[];
   };
 }
 

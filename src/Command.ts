@@ -1,6 +1,7 @@
-import {Message, MessageEmbed, Snowflake} from 'discord.js';
+import {Guild, Message, MessageEmbed, Snowflake} from 'discord.js';
 
 import type Bot from './Bot';
+import GuildData from './GuildData';
 
 export type CommandConstructor = new (bot: Bot) => Command;
 
@@ -17,9 +18,9 @@ export default abstract class Command {
     this.bot = bot;
   }
 
-  async execute(message: Message, args: string): Promise<void> {
+  async execute(guildData: GuildData, guild: Guild, message: Message, args: string): Promise<void> {
     try {
-      await this.internalExecute(message, args);
+      await this.internalExecute(guildData, guild, message, args);
     } catch (error) {
       this.sendError(
         message,
@@ -29,7 +30,12 @@ export default abstract class Command {
     }
   }
 
-  protected abstract internalExecute(message: Message, args: string): Promise<void>;
+  protected abstract internalExecute(
+    guildData: GuildData,
+    guild: Guild,
+    message: Message,
+    args: string
+  ): Promise<void>;
 
   protected sendError(messageObject: Message, message: string): Promise<Message> {
     const embed = new MessageEmbed()
@@ -45,10 +51,10 @@ export default abstract class Command {
     return messageObject.channel.send(embed);
   }
 
-  getHelpEmbed(guildId: Snowflake): MessageEmbed {
+  getHelpEmbed(guildData: GuildData): MessageEmbed {
     return new MessageEmbed()
       .setTitle(`Command \`${this.name}\``)
       .setDescription(this.description)
-      .addField('Usage', this.usage.replace('{p}', this.bot.getPrefix(guildId)));
+      .addField('Usage', this.usage.replace('{p}', guildData.prefix));
   }
 }

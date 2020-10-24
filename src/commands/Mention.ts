@@ -1,7 +1,8 @@
-import {Message, MessageEmbed, MessageReaction, User} from 'discord.js';
+import {Guild, Message, MessageEmbed, MessageReaction, User} from 'discord.js';
 
 import Command from '../Command';
 import {GuildConfig, RoleConfig} from '../config';
+import GuildData from '../GuildData';
 
 export default class Mention extends Command {
   name = 'mention';
@@ -10,15 +11,18 @@ export default class Mention extends Command {
 
   usage = '{p}mention [name]';
 
-  protected async internalExecute(message: Message, args: string): Promise<void> {
-    const guild = message.guild!;
+  protected async internalExecute(
+    data: GuildData,
+    guild: Guild,
+    message: Message,
+    args: string
+  ): Promise<void> {
     if (args.trim().length === 0) {
-      message.channel.send(this.getHelpEmbed(guild.id));
+      message.channel.send(this.getHelpEmbed(data));
       return;
     }
 
-    const guildConfig = this.bot.getGuildConfig(guild.id);
-    if (guildConfig.locked) {
+    if (data.locked) {
       await this.sendError(
         message,
         'Guild is currently locked so you cannot use this command right now.'
@@ -26,14 +30,15 @@ export default class Mention extends Command {
       return;
     }
 
-    const roleConfig = guildConfig.roles[args];
+    const roleConfig = data.roles.get(args);
     if (!roleConfig) {
       this.sendError(message, `No role with name \`${args}\` is registered.`);
       return;
     }
-    if (!guildConfig.channels[message.channel.id]?.includes(args)) {
-      const channels = this.getChannelsForRole(guildConfig, args)
-        .map(id => `<#${id}>`)
+    if (!data.channels.get(message.channel.id)?.includes(args)) {
+      const channels = data.channels
+        .filter(roles => roles.includes(args))
+        .map((_, id) => `<#${id}>`)
         .join(', ');
       this.sendError(
         message,
@@ -60,30 +65,24 @@ export default class Mention extends Command {
           reaction.emoji.name === '❌' && user.id === message.author.id,
         {max: 1, time: remainingTime, errors: ['time']}
       )
-      .then(() => this.onCancel(message, waitMessage))
+      .then(() => this.onCancel(data, message, waitMessage))
       .catch(() => {});
 
     const timeout = setTimeout(async () => {
       await waitMessage.delete();
-      this.bot.deleteFromQueue(message.channel.id);
-      await this.afterWait(message, roleConfig);
+      data.deleteFromQueue(message.channel.id);
+      await this.afterWait(data, message, roleConfig);
     }, remainingTime);
-    this.bot.addToQueue(message.channel.id, timeout);
+    data.addToQueue(message.channel.id, timeout);
   }
 
-  private getChannelsForRole(config: GuildConfig, roleId: string) {
-    return Object.entries(config.channels)
-      .filter(([_, roles]) => roles?.includes(roleId))
-      .map(([id, _]) => id);
-  }
-
-  private onCancel(message: Message, deleteMessage: Message) {
-    this.bot.removeFromQueue(message.channel.id);
+  private onCancel(data: GuildData, message: Message, deleteMessage: Message) {
+    data.removeFromQueue(message.channel.id);
     deleteMessage.delete();
     this.sendReply(message, 'Mention request was canceled.');
   }
 
-  private async afterWait(message: Message, roleConfig: RoleConfig) {
+  private async afterWait(data: GuildData, message: Message, roleConfig: RoleConfig) {
     const confEmbed = new MessageEmbed().setDescription(
       `Still want to mention <@&${roleConfig.id}>? If so react with \`✅\` else with \`❌\` in the next 30 seconds.`
     );
@@ -99,14 +98,14 @@ export default class Mention extends Command {
         )
       ).first();
       if (!reaction || reaction.emoji.name === '❌') {
-        await this.onCancel(message, confMessage);
+        await this.onCancel(data, message, confMessage);
         return;
       }
       confMessage.delete();
       message.channel.send(`<@&${roleConfig.id}>: ${message.author} mentioned you: ${message.url}`);
     } catch {
       await confMessage.delete();
-      await this.onCancel(message, confMessage);
+      await this.onCancel(data, message, confMessage);
     }
   }
 }

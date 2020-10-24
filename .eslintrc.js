@@ -38,6 +38,8 @@ module.exports = {
     'unicorn/import-style': 'off',
     // Conflict with "consistent-return"
     'unicorn/no-useless-undefined': 'off',
+    // Properties should be changeable
+    'no-param-reassign': ['error', {props: false}],
     // For this project this should be disabled
     'no-console': 'off',
     // Commands use a mix between functional and object oriented programming so this should be disabled
