@@ -37,7 +37,7 @@ export default class Bot {
 
     this.client.addListener('message', (message: Message) => this.onMessage(message));
 
-    this.client.login(process.env.BOT_TOKEN);
+    this.client.login(process.env.DISCORD_TOKEN);
   }
 
   private onMessage(message: Message) {
