@@ -18,7 +18,7 @@ export default class List extends Command {
     data.channels.forEach((roles, id) => {
       const channelName = guild.channels.cache.get(id)?.name;
       if (!channelName || !roles) return;
-      embed.addField(`#${channelName}`, roles.join(', '));
+      embed.addField(`#${channelName}`, roles.map(role => `\`${role}\``).join(', '));
     });
     message.channel.send(embed);
   }
