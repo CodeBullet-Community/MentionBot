@@ -105,10 +105,13 @@ export default class Mention extends Command {
     data.addToQueue(message.channel.id, timeout);
   }
 
-  private onCancel(data: GuildData, message: Message, deleteMessage: Message) {
+  private async onCancel(data: GuildData, message: Message, deleteMessage: Message) {
     data.removeFromQueue(message.channel.id);
-    deleteMessage.delete();
-    this.sendReply(message, 'Mention request was canceled.');
+    try {
+      await deleteMessage.delete();
+      // eslint-disable-next-line no-empty
+    } catch {}
+    await this.sendReply(message, 'Mention request was canceled.');
   }
 
   private async afterWait(data: GuildData, message: Message, roleConfig: RoleConfig) {
@@ -138,7 +141,6 @@ export default class Mention extends Command {
         }`
       );
     } catch {
-      await confMessage.delete();
       await this.onCancel(data, message, confMessage);
     }
   }
