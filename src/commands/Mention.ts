@@ -17,9 +17,25 @@ export default class Mention extends Command {
     message: Message,
     args: string
   ): Promise<void> {
-    if (args.trim().length === 0) {
-      message.channel.send(this.getHelpEmbed(data));
-      return;
+    let roleName = args.trim();
+    const channelRoles = data.channels.get(message.channel.id);
+    if (roleName.length === 0) {
+      if (channelRoles?.length === 1) {
+        roleName = channelRoles[0];
+      } else if (channelRoles) {
+        const roles = channelRoles.map(role => `\`${role}\``).join(', ');
+        await this.sendError(
+          message,
+          `This channel has more then one mentionable role: ${roles}. Choose one using \`${data.prefix}mention [name]\`.`
+        );
+        return;
+      } else {
+        await this.sendError(
+          message,
+          `This channel has no mentionable roles. Use \`${data.prefix}list\` to see which channels do have mentionable roles.`
+        );
+        return;
+      }
     }
 
     if (data.locked) {
@@ -30,17 +46,17 @@ export default class Mention extends Command {
       return;
     }
 
-    const roleConfig = data.roles.get(args);
+    const roleConfig = data.roles.get(roleName);
     if (!roleConfig) {
-      this.sendError(message, `No role with name \`${args}\` is registered.`);
+      await this.sendError(message, `No role with name \`${roleName}\` is registered.`);
       return;
     }
-    if (!data.channels.get(message.channel.id)?.includes(args)) {
+    if (!channelRoles?.includes(roleName)) {
       const channels = data.channels
-        .filter(roles => roles.includes(args))
+        .filter(roles => roles.includes(roleName))
         .map((_, id) => `<#${id}>`)
         .join(', ');
-      this.sendError(
+      await this.sendError(
         message,
         `You cannot mention this role in this channel. Allowed channels: ${channels}`
       );
@@ -55,7 +71,7 @@ export default class Mention extends Command {
     }
 
     const waitEmbed = new MessageEmbed()
-      .setTitle(`Mention request for ${args}`)
+      .setTitle(`Mention request for ${roleName}`)
       .setDescription(
         `In ${roleConfig.wait}ms a new confirmation message will appear that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` +
           'If you would like to cancel this request, react to this message with `❌`'
