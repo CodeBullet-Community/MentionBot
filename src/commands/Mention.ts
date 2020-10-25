@@ -70,6 +70,12 @@ export default class Mention extends Command {
       return;
     }
 
+    console.log(
+      `New mention request: User: ${message.author.id} (${message.author.username}) | ` +
+        `Role: ${roleName} (${roleConfig.id}) | Message: ${guild.id}/${message.channel.id}/${message.id} ` +
+        `(${guild.name}/#${guild.channels.cache.get(message.channel.id)?.name}/message)`
+    );
+
     const waitEmbed = new MessageEmbed()
       .setTitle(`Mention request for ${roleName}`)
       .setDescription(
@@ -126,6 +132,11 @@ export default class Mention extends Command {
       }
       confMessage.delete();
       message.channel.send(`<@&${roleConfig.id}>: ${message.author} mentioned you: ${message.url}`);
+      console.log(
+        `Mention request accepted: Original message: ${message.guild!.id}/${message.channel.id}/${
+          message.id
+        }`
+      );
     } catch {
       await confMessage.delete();
       await this.onCancel(data, message, confMessage);
