@@ -1,8 +1,17 @@
 import {Guild, Message, MessageEmbed, MessageReaction, User} from 'discord.js';
 
 import Command from '../Command';
-import {GuildConfig, RoleConfig} from '../config';
+import {RoleConfig} from '../config';
 import GuildData from '../GuildData';
+
+export enum Duration {
+  Nano = 1e-6,
+  Second = 1000,
+  Minute = Second * 60,
+  Hour = Minute * 60,
+  Day = Hour * 24,
+  ThirtyDays = Day * 30,
+}
 
 export default class Mention extends Command {
   name = 'mention';
@@ -79,8 +88,11 @@ export default class Mention extends Command {
     const waitEmbed = new MessageEmbed()
       .setTitle(`Mention request for ${roleName}`)
       .setDescription(
-        `In ${roleConfig.wait}ms a new confirmation message will appear that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` +
-          'If you would like to cancel this request, react to this message with `❌`'
+        `In ${this.secondsToString(
+          roleConfig.wait
+        )} a new confirmation message will appear that needs to be accepted for the bot to then mention <@&${
+          roleConfig.id
+        }>.\n` + 'If you would like to cancel this request, react to this message with `❌`'
       )
       .setFooter(`Time of confirmation message`)
       .setTimestamp(message.createdTimestamp + roleConfig.wait);
@@ -103,6 +115,22 @@ export default class Mention extends Command {
       await this.afterWait(data, message, roleConfig);
     }, remainingTime);
     data.addToQueue(message.channel.id, timeout);
+  }
+
+  private secondsToString(duration: number): string {
+    const days = Math.floor(duration / Duration.Day);
+    const hours = Math.floor(duration / Duration.Hour) % 24;
+    const minutes = Math.floor(duration / Duration.Minute) % 60;
+    const seconds = Math.floor(duration / Duration.Second) % 60;
+    const milliseconds = duration % 1000;
+
+    let result = '';
+    if (days !== 0) result += `${days}d `;
+    if (hours !== 0) result += `${hours}hr `;
+    if (minutes !== 0) result += `${minutes}min `;
+    if (seconds !== 0) result += `${seconds}sec `;
+    if (milliseconds !== 0) result += `${milliseconds}ms`;
+    return result;
   }
 
   private async onCancel(data: GuildData, message: Message, deleteMessage: Message) {
