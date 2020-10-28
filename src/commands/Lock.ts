@@ -7,9 +7,14 @@ export default class Lock extends Command {
 
   description = 'Locks mention command';
 
-  usage = '{p}lock';
+  usage = '{p}lock [optional reason]';
 
-  protected async internalExecute(data: GuildData, guild: Guild, message: Message): Promise<void> {
+  protected async internalExecute(
+    data: GuildData,
+    guild: Guild,
+    message: Message,
+    args: string
+  ): Promise<void> {
     if (!data.isController(message.member!)) return;
 
     if (data.locked) {
@@ -21,10 +26,10 @@ export default class Lock extends Command {
     }
 
     data.locked = true;
-    data.clearQueue();
+    data.clearQueue(args || 'This guild has been locked.');
     await this.sendReply(
       message,
-      'Guild has been locked and all queued mentions have been canceled.'
+      'Guild has been locked and all queued mentions have been rejected.'
     );
   }
 }

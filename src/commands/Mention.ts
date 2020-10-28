@@ -1,8 +1,8 @@
 import {Guild, Message, MessageEmbed, MessageReaction, User} from 'discord.js';
 
 import Command from '../Command';
-import {RoleConfig} from '../config';
 import GuildData from '../GuildData';
+import MentionRequest from '../MentionRequest';
 
 export enum Duration {
   Nano = 1e-6,
@@ -26,6 +26,14 @@ export default class Mention extends Command {
     message: Message,
     args: string
   ): Promise<void> {
+    if (data.locked) {
+      await this.sendError(
+        message,
+        'Guild is currently locked so you cannot use this command right now.'
+      );
+      return;
+    }
+
     let roleName = args.trim();
     const channelRoles = data.channels.get(message.channel.id);
     if (roleName.length === 0) {
@@ -47,14 +55,6 @@ export default class Mention extends Command {
       }
     }
 
-    if (data.locked) {
-      await this.sendError(
-        message,
-        'Guild is currently locked so you cannot use this command right now.'
-      );
-      return;
-    }
-
     const roleConfig = data.roles.get(roleName);
     if (!roleConfig) {
       await this.sendError(message, `No role with name \`${roleName}\` is registered.`);
@@ -71,10 +71,11 @@ export default class Mention extends Command {
       );
       return;
     }
-    if (data.isInQueue(message.channel.id)) {
+    const exitingRequest = data.getFromQueue(message.channel.id);
+    if (exitingRequest) {
       this.sendError(
         message,
-        `This channel already has a pending mention request. Wait until that one has canceled or executed.`
+        `This channel already has a pending mention request. Wait until the following request has been canceled or executed: ${exitingRequest.requestMessage.url}`
       );
       return;
     }
@@ -88,33 +89,34 @@ export default class Mention extends Command {
     const waitEmbed = new MessageEmbed()
       .setTitle(`Mention request for ${roleName}`)
       .setDescription(
-        `In ${this.secondsToString(
-          roleConfig.wait
-        )} a new confirmation message will appear that needs to be accepted for the bot to then mention <@&${
-          roleConfig.id
-        }>.\n` + 'If you would like to cancel this request, react to this message with `❌`'
+        `In ${this.secondsToString(roleConfig.wait)} a new confirmation message will appear ` +
+          `that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` +
+          'If you would like to cancel this request, react to this message with `❌`'
       )
       .setFooter(`Time of confirmation message`)
       .setTimestamp(message.createdTimestamp + roleConfig.wait);
     const waitMessage = await message.channel.send(waitEmbed);
     waitMessage.react('❌');
 
-    const remainingTime = roleConfig.wait - Date.now() + message.createdTimestamp;
+    const request = new MentionRequest(
+      data,
+      message,
+      roleName,
+      roleConfig,
+      (...arg) => this.onRequestRejection(...arg),
+      (...arg) => this.onRequestAcceptation(...arg),
+      (...arg) => this.confirmRequest(waitMessage)(...arg)
+    );
     waitMessage
       .awaitReactions(
         (reaction: MessageReaction, user: User) =>
           reaction.emoji.name === '❌' && user.id === message.author.id,
-        {max: 1, time: remainingTime, errors: ['time']}
+        {max: 1, time: request.remainingTime, errors: ['time']}
       )
-      .then(() => this.onCancel(data, message, waitMessage))
+      .then(() => request.reject('Canceled while waiting.'))
       .catch(() => {});
 
-    const timeout = setTimeout(async () => {
-      await waitMessage.delete();
-      data.deleteFromQueue(message.channel.id);
-      await this.afterWait(data, message, roleConfig);
-    }, remainingTime);
-    data.addToQueue(message.channel.id, timeout);
+    data.addToQueue(message.channel.id, request);
   }
 
   private secondsToString(duration: number): string {
@@ -133,43 +135,45 @@ export default class Mention extends Command {
     return result;
   }
 
-  private async onCancel(data: GuildData, message: Message, deleteMessage: Message) {
-    data.removeFromQueue(message.channel.id);
-    try {
-      await deleteMessage.delete();
-      // eslint-disable-next-line no-empty
-    } catch {}
-    await this.sendReply(message, 'Mention request was canceled.');
+  private async onRequestRejection(request: MentionRequest, reason: string) {
+    await this.sendReply(
+      request.requestMessage,
+      `Mention request for <@&${request.roleConfig.id}> was rejected for following reason: ${reason}`
+    );
   }
 
-  private async afterWait(data: GuildData, message: Message, roleConfig: RoleConfig) {
-    const confEmbed = new MessageEmbed().setDescription(
-      `Still want to mention <@&${roleConfig.id}>? If so react with \`✅\` else with \`❌\` in the next 30 seconds.`
+  private async onRequestAcceptation(request: MentionRequest) {
+    console.log(
+      `Mention request accepted: Original message: ${request.guild.id}/${request.requestMessage.channel.id}/${request.requestMessage.id}`
     );
-    const confMessage = await message.channel.send(message.author.toString(), confEmbed);
-    await Promise.all([confMessage.react('❌'), confMessage.react('✅')]);
-    try {
-      const reaction = (
-        await confMessage.awaitReactions(
+    await request.requestMessage.channel.send(
+      `<@&${request.roleConfig.id}>: ${request.requestMessage.author} mentioned you: ${request.requestMessage.url}`
+    );
+  }
+
+  private confirmRequest(waitMessage: Message) {
+    return async (request: MentionRequest) => {
+      await waitMessage.delete();
+      const confMessage = await request.requestMessage.channel.send(
+        request.requestMessage.author.toString(),
+        new MessageEmbed().setDescription(
+          `Still want to mention <@&${request.roleConfig.id}>? If so react with \`✅\` else with \`❌\` in the next 30 seconds.`
+        )
+      );
+      await Promise.all([confMessage.react('❌'), confMessage.react('✅')]);
+      try {
+        const reactions = await confMessage.awaitReactions(
           (userReaction: MessageReaction, user: User) =>
             (userReaction.emoji.name === '❌' || userReaction.emoji.name === '✅') &&
-            user.id === message.author.id,
+            user.id === request.requestMessage.author.id,
           {max: 1, time: 30000, errors: ['time']}
-        )
-      ).first();
-      if (!reaction || reaction.emoji.name === '❌') {
-        await this.onCancel(data, message, confMessage);
-        return;
+        );
+        confMessage.delete();
+        return reactions.first()?.emoji.name === '✅';
+      } catch {
+        confMessage.delete();
+        return false;
       }
-      confMessage.delete();
-      message.channel.send(`<@&${roleConfig.id}>: ${message.author} mentioned you: ${message.url}`);
-      console.log(
-        `Mention request accepted: Original message: ${message.guild!.id}/${message.channel.id}/${
-          message.id
-        }`
-      );
-    } catch {
-      await this.onCancel(data, message, confMessage);
-    }
+    };
   }
 }

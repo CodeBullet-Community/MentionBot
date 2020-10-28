@@ -1,6 +1,7 @@
-import {Collection, GuildMember, Snowflake} from 'discord.js';
+import {Collection, GuildMember, Message, Snowflake} from 'discord.js';
 import type Bot from './Bot';
 import {GuildConfig, RoleConfig} from './config';
+import type MentionRequest from './MentionRequest';
 
 export default class GuildData {
   readonly id: Snowflake;
@@ -19,7 +20,7 @@ export default class GuildData {
 
   readonly channels: Collection<string, string[]>;
 
-  private readonly mentionQueue: Collection<string, NodeJS.Timeout>;
+  private readonly mentionQueue: Collection<string, MentionRequest>;
 
   private readonly bot: Bot;
 
@@ -34,27 +35,27 @@ export default class GuildData {
     this.mentionQueue = new Collection();
   }
 
-  addToQueue(id: string, timeout: NodeJS.Timeout): void {
-    this.mentionQueue.set(id, timeout);
+  addToQueue(id: string, request: MentionRequest): void {
+    this.mentionQueue.set(id, request);
   }
 
-  removeFromQueue(id: string): void {
-    const timeout = this.mentionQueue.get(id);
-    if (!timeout) return;
-    clearTimeout(timeout);
-    this.mentionQueue.delete(id);
+  async removeFromQueue(id: string, reason: string): Promise<void> {
+    const request = this.mentionQueue.get(id);
+    if (!request) return;
+    await request.reject(reason);
+    this.deleteFromQueue(id);
   }
 
   deleteFromQueue(id: string): void {
     this.mentionQueue.delete(id);
   }
 
-  isInQueue(id: string): boolean {
-    return this.mentionQueue.has(id);
+  getFromQueue(id: string): MentionRequest | undefined {
+    return this.mentionQueue.get(id);
   }
 
-  clearQueue(): void {
-    this.mentionQueue.forEach(timeout => clearTimeout(timeout));
+  async clearQueue(reason: string): Promise<void> {
+    Promise.allSettled(this.mentionQueue.map(request => request.reject(reason)));
     this.mentionQueue.clear();
   }
 

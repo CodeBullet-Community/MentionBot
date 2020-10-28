@@ -23,8 +23,6 @@ export default class Bot {
 
   client!: Client;
 
-  private readonly mentionQueue: Collection<string, NodeJS.Timeout>;
-
   constructor(config: BotConfig) {
     this.prefix = config.prefix ?? '??';
     this.owners = config.owners ?? [];
@@ -39,7 +37,6 @@ export default class Bot {
       const command = new constructor(this);
       this.commands.set(command.name, command);
     });
-    this.mentionQueue = new Collection();
   }
 
   async initializeBot(): Promise<void> {
