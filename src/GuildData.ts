@@ -14,6 +14,8 @@ export default class GuildData {
     return this.customPrefix || this.bot.prefix;
   }
 
+  readonly confirmReactionTime: number;
+
   readonly controllers: string[];
 
   readonly roles: Collection<string, RoleConfig>;
@@ -29,6 +31,7 @@ export default class GuildData {
     this.id = id;
     this.locked = config.locked ?? false;
     this.customPrefix = config.prefix;
+    this.confirmReactionTime = config.confirmReactionTime ?? 60000;
     this.controllers = config.controllers ?? [];
     this.roles = new Collection(Object.entries(config.roles));
     this.channels = new Collection(Object.entries(config.channels));

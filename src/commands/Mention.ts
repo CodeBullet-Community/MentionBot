@@ -157,7 +157,11 @@ export default class Mention extends Command {
       const confMessage = await request.requestMessage.channel.send(
         request.requestMessage.author.toString(),
         new MessageEmbed().setDescription(
-          `Still want to mention <@&${request.roleConfig.id}>? If so react with \`✅\` else with \`❌\` in the next 30 seconds.`
+          `Still want to mention <@&${
+            request.roleConfig.id
+          }>? If so react with \`✅\` else with \`❌\` in the next ${this.secondsToString(
+            request.guild.confirmReactionTime
+          )}.`
         )
       );
       await Promise.all([confMessage.react('❌'), confMessage.react('✅')]);
@@ -166,7 +170,7 @@ export default class Mention extends Command {
           (userReaction: MessageReaction, user: User) =>
             (userReaction.emoji.name === '❌' || userReaction.emoji.name === '✅') &&
             user.id === request.requestMessage.author.id,
-          {max: 1, time: 30000, errors: ['time']}
+          {max: 1, time: request.guild.confirmReactionTime, errors: ['time']}
         );
         confMessage.delete();
         return reactions.first()?.emoji.name === '✅';

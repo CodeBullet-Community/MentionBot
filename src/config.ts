@@ -11,6 +11,7 @@ export interface BotConfig {
 export interface GuildConfig {
   locked?: boolean;
   prefix?: string;
+  confirmReactionTime?: number;
   /**
    * Roles or users that can control the bot
    */
