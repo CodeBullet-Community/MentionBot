@@ -1,6 +1,7 @@
 import {Client, Collection, Message, Snowflake} from 'discord.js';
 
 import Command, {CommandConstructor} from './Command';
+import Force from './commands/Force';
 import Help from './commands/Help';
 import List from './commands/List';
 import Lock from './commands/Lock';
@@ -11,7 +12,15 @@ import {BotConfig} from './config';
 import GuildData from './GuildData';
 
 export default class Bot {
-  static commandConstructors: CommandConstructor[] = [Ping, Mention, List, Lock, Unlock, Help];
+  static commandConstructors: CommandConstructor[] = [
+    Ping,
+    Mention,
+    List,
+    Lock,
+    Unlock,
+    Help,
+    Force,
+  ];
 
   readonly prefix: string;
 
