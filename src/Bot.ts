@@ -7,6 +7,7 @@ import List from './commands/List';
 import Lock from './commands/Lock';
 import Mention from './commands/Mention';
 import Ping from './commands/Ping';
+import Reject from './commands/Reject';
 import Unlock from './commands/Unlock';
 import {BotConfig} from './config';
 import GuildData from './GuildData';
@@ -20,6 +21,7 @@ export default class Bot {
     Unlock,
     Help,
     Force,
+    Reject,
   ];
 
   readonly prefix: string;
