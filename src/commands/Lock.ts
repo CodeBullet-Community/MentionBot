@@ -29,7 +29,7 @@ export default class Lock extends Command {
     data.clearQueue(args || 'This guild has been locked.');
     await this.sendReply(
       message,
-      'Guild has been locked and all queued mentions have been rejected.'
+      'Guild has been locked and all pending mentions requests have been rejected.'
     );
   }
 }
