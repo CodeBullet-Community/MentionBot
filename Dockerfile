@@ -6,8 +6,9 @@ COPY yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 COPY tsconfig.json ./
-COPY config.json ./
 COPY src ./src
-RUN npm run build:prod && (rm -r src & rm -r node_modules && yarn install --frozen-lockfile --production)
+RUN yarn build:prod && (rm -r src & rm -r node_modules && yarn install --frozen-lockfile --production)
+
+COPY config.json ./
 
 CMD yarn start:prod
