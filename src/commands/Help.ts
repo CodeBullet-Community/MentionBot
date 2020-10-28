@@ -24,7 +24,9 @@ export default class Help extends Command {
       await message.channel.send(command.getHelpEmbed(data));
       return;
     }
-    const embed = new MessageEmbed().setTitle('Commands');
+    const embed = new MessageEmbed()
+      .setTitle('Commands')
+      .setDescription(`Project repository:\nhttps://github.com/CodeBullet-Community/MentionBot`);
     this.bot.commands.forEach((command, name) =>
       embed.addField(`${data.prefix}${name}`, command.description)
     );
