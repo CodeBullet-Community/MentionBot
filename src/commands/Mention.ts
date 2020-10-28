@@ -35,24 +35,24 @@ export default class Mention extends Command {
     }
 
     let roleName = args.trim();
-    const channelRoles = data.channels.get(message.channel.id);
+    const channelConfig = data.channels.get(message.channel.id);
     if (roleName.length === 0) {
-      if (channelRoles?.length === 1) {
-        roleName = channelRoles[0];
-      } else if (channelRoles) {
-        const roles = channelRoles.map(role => `\`${role}\``).join(', ');
-        await this.sendError(
-          message,
-          `This channel has more then one mentionable role: ${roles}. Choose one using \`${data.prefix}mention [name]\`.`
-        );
-        return;
-      } else {
+      if (!channelConfig) {
         await this.sendError(
           message,
           `This channel has no mentionable roles. Use \`${data.prefix}list\` to see which channels do have mentionable roles.`
         );
         return;
       }
+      if (!channelConfig.default) {
+        const roles = channelConfig.roles.map(role => `\`${role}\``).join(', ');
+        await this.sendError(
+          message,
+          `This channel has no default role. Using \`${data.prefix}mention [name]\` choose one of the following: ${roles}`
+        );
+        return;
+      }
+      roleName = channelConfig.default;
     }
 
     const roleConfig = data.roles.get(roleName);
@@ -60,9 +60,9 @@ export default class Mention extends Command {
       await this.sendError(message, `No role with name \`${roleName}\` is registered.`);
       return;
     }
-    if (!channelRoles?.includes(roleName)) {
+    if (!channelConfig?.roles.includes(roleName)) {
       const channels = data.channels
-        .filter(roles => roles.includes(roleName))
+        .filter(config => config.roles.includes(roleName))
         .map((_, id) => `<#${id}>`)
         .join(', ');
       await this.sendError(

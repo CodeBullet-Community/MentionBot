@@ -15,10 +15,10 @@ export default class List extends Command {
       .setDescription(
         `Use those names in the respective channels with \`${data.prefix}mention [name]\`.`
       );
-    data.channels.forEach((roles, id) => {
+    data.channels.forEach((config, id) => {
       const channelName = guild.channels.cache.get(id)?.name;
-      if (!channelName || !roles) return;
-      embed.addField(`#${channelName}`, roles.map(role => `\`${role}\``).join(', '));
+      if (!channelName || !config) return;
+      embed.addField(`#${channelName}`, config.roles.map(role => `\`${role}\``).join(', '));
     });
     message.channel.send(embed);
   }

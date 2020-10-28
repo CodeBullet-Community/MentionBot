@@ -23,9 +23,14 @@ export interface GuildConfig {
     /**
      * Array of names that are mentionable in this channel
      */
-    [id: string]: string[];
+    [id: string]: string[] | ChannelRolesConfig;
   };
 }
+
+export type ChannelRolesConfig = {
+  roles: string[];
+  default: string | null;
+};
 
 export interface RoleConfig {
   id: Snowflake;

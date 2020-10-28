@@ -1,6 +1,6 @@
-import {Collection, GuildMember, Message, Snowflake} from 'discord.js';
+import {Collection, GuildMember, Snowflake} from 'discord.js';
 import type Bot from './Bot';
-import {GuildConfig, RoleConfig} from './config';
+import {ChannelRolesConfig, GuildConfig, RoleConfig} from './config';
 import type MentionRequest from './MentionRequest';
 
 export default class GuildData {
@@ -20,7 +20,7 @@ export default class GuildData {
 
   readonly roles: Collection<string, RoleConfig>;
 
-  readonly channels: Collection<string, string[]>;
+  readonly channels: Collection<string, ChannelRolesConfig>;
 
   private readonly mentionQueue: Collection<string, MentionRequest>;
 
@@ -34,7 +34,14 @@ export default class GuildData {
     this.confirmReactionTime = config.confirmReactionTime ?? 60000;
     this.controllers = config.controllers ?? [];
     this.roles = new Collection(Object.entries(config.roles));
-    this.channels = new Collection(Object.entries(config.channels));
+    this.channels = new Collection(
+      Object.entries(config.channels).map(([channelId, channelConfig]) => [
+        channelId,
+        Array.isArray(channelConfig)
+          ? {roles: channelConfig, default: channelConfig[0]}
+          : channelConfig,
+      ])
+    );
     this.mentionQueue = new Collection();
   }
 
