@@ -5,13 +5,40 @@ TypeScript minimalist rewrite of Rooskie's
 [symmetrical-potato](https://github.com/GalaxySH/symmetrical-potato) which was originally created to
 solve a mention spam issue in [CodeBullet and Co](https://discord.gg/3wTEZkh)
 
-## Currently Implemented Mention Restrictions
+## How It Works
 
-- Allow certain role mentions only in certain channels
-- Force a wait time before the Mention Request is accepted
-- Lock the entire guild via one guild
+This is a very basic showcase. To look see all commands use the `help` command.
+
+Have some a unmentionable role and make a mention request (`?!mention [test]`):
+
+![showcase screenshot 1](https://cdn.discordapp.com/attachments/574189601338556429/771823297960738816/unknown.png =500x)
+
+Wait 1 minute and then decide if you want to still mention the role:
+
+![showcase screenshot 2](https://cdn.discordapp.com/attachments/574189601338556429/771824895181062154/unknown.png =500x)
+
+Accept and have the role mentioned:
+
+![showcase screenshot 3](https://cdn.discordapp.com/attachments/574189601338556429/771826150817005618/unknown.png =x45)
+
+Or decline the confirmation:
+
+![showcase screenshot 4](https://cdn.discordapp.com/attachments/574189601338556429/771827067511636039/unknown.png =500x)
+
+### Features
+
+- Restrict certain role mentions to certain channels
+- Force a wait time before the mention request is accepted (or set it to 0 and not wait)
+- Have one default role per channel so `[name]` can be omitted from the command
+- Mod features
+  - Lock server to reject all pending mention requests and prevent new ones
+  - Skip vote time for pending mention requests
+  - Force reject a specific mention request
+  - Logging of who made a mention request and which one was granted
 
 ## Things That Could Be Improved/Added
+
+PRs are welcome!
 
 - Make locking via commands persistent (currently at start only loads default from `config.json`)
 - Add command cooldown
