@@ -9,7 +9,7 @@ mention spam issue in [CodeBullet and Co](https://discord.gg/3wTEZkh)
 
 This is a very basic showcase. To see all commands use the `help` command.
 
-Have some unmentionable role and make a mention request (`?!mention [test]`):
+Have some unmentionable role and make a mention request (`?!mention [name]`):
 
 <img alt="showcase screenshot 1" src="https://cdn.discordapp.com/attachments/574189601338556429/771823297960738816/unknown.png" width=500 />
 
