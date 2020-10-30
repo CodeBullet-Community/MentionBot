@@ -2,14 +2,14 @@
 
 A bot to control publicly role mentioning by proxying the mentions through the bot. This is a
 TypeScript minimalist rewrite of Rooskie's
-[symmetrical-potato](https://github.com/GalaxySH/symmetrical-potato) which was originally created to
-solve a mention spam issue in [CodeBullet and Co](https://discord.gg/3wTEZkh)
+[symmetrical-potato](https://github.com/GalaxySH/symmetrical-potato) which was created to solve a
+mention spam issue in [CodeBullet and Co](https://discord.gg/3wTEZkh)
 
 ## How It Works
 
-This is a very basic showcase. To look see all commands use the `help` command.
+This is a very basic showcase. To see all commands use the `help` command.
 
-Have some a unmentionable role and make a mention request (`?!mention [test]`):
+Have some unmentionable role and make a mention request (`?!mention [test]`):
 
 <img alt="showcase screenshot 1" src="https://cdn.discordapp.com/attachments/574189601338556429/771823297960738816/unknown.png" width=500 />
 
@@ -40,7 +40,8 @@ Or decline the confirmation:
 
 PRs are welcome!
 
-- Make locking via commands persistent (currently at start only loads default from `config.json`)
+- Make locking via commands persistent (currently at the start only loads default from
+  `config.json`)
 - Add command cooldown
 - Make wait time relative to the last message the user sent in the channel with some minimum wait
   time and some threshold when normal wait times apply again
