@@ -1,8 +1,8 @@
 import {Snowflake} from 'discord.js';
 
 export interface BotConfig {
-  prefix: string;
-  owners: string[];
+  prefix?: string;
+  owners?: string[];
   guilds: {
     [id: string]: GuildConfig;
   };

@@ -22,7 +22,6 @@ let config: BotConfig;
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
   config = require('../config.json');
-  if (Object.keys(config).length !== 3) throw new Error('Config file is incomplete');
 } catch (error) {
   console.error('Caught error while loading config file.', error);
   exitWithError();
