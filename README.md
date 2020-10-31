@@ -11,19 +11,19 @@ This is a very basic showcase. To see all commands use the `help` command.
 
 Have some unmentionable role and make a mention request (`?!mention [name]`):
 
-<img alt="showcase screenshot 1" src="https://cdn.discordapp.com/attachments/574189601338556429/771823297960738816/unknown.png" width=500 />
+<img alt="showcase screenshot 1" src="docs/screenshot-1.png?raw=true" width=500 />
 
 Wait 1 minute and then decide if you want to still mention the role:
 
-<img alt="showcase screenshot 2" src="https://cdn.discordapp.com/attachments/574189601338556429/771824895181062154/unknown.png" width=500 />
+<img alt="showcase screenshot 2" src="docs/screenshot-2.png?raw=true" width=500 />
 
 Accept and have the role mentioned:
 
-<img alt="showcase screenshot 3" src="https://cdn.discordapp.com/attachments/574189601338556429/771826150817005618/unknown.png" height=45 />
+<img alt="showcase screenshot 3" src="docs/screenshot-3.png?raw=true" height=50 />
 
 Or decline the confirmation:
 
-<img alt="showcase screenshot 4" src="https://cdn.discordapp.com/attachments/574189601338556429/771827067511636039/unknown.png" width=500 />
+<img alt="showcase screenshot 4" src="docs/screenshot-4.png?raw=true" width=500 />
 
 ### Features
 
