@@ -34,6 +34,11 @@ export default class MentionRequest {
     return this.roleConfig.wait - Date.now() + this.requestMessage.createdTimestamp;
   }
 
+  /**
+   * Quick fix for invalid rejection message when confirmation gets forced
+   */
+  private preventRejection = false;
+
   constructor(
     guild: GuildData,
     requestMessage: Message,
@@ -73,9 +78,13 @@ export default class MentionRequest {
     this.guild.deleteFromQueue(this.requestMessage.channel.id);
   }
 
-  reject(reason: string): Promise<void> {
+  async reject(reason: string): Promise<void> {
+    if (this.preventRejection) {
+      this.preventRejection = false;
+      return;
+    }
     this.settle();
-    return this.rejectCallback(this, reason);
+    await this.rejectCallback(this, reason);
   }
 
   accept(): Promise<void> {
@@ -84,7 +93,8 @@ export default class MentionRequest {
   }
 
   async forceConfirmation(): Promise<void> {
-    this.settle();
-    await this.confirmRequest;
+    clearTimeout(this.timeout);
+    this.preventRejection = true;
+    await this.confirmRequest();
   }
 }
