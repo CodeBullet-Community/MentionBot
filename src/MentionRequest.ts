@@ -22,6 +22,8 @@ export default class MentionRequest {
 
   readonly roleConfig: RoleConfig;
 
+  isWaiting: boolean;
+
   private readonly rejectCallback: MentionRequestRejectCallback;
 
   private readonly acceptCallback: MentionRequestAcceptCallback;
@@ -54,6 +56,7 @@ export default class MentionRequest {
     this.guildObject = requestMessage.guild!;
     this.roleName = roleName;
     this.roleConfig = roleConfig;
+    this.isWaiting = true;
     this.rejectCallback = rejectCallback;
     this.acceptCallback = acceptCallback;
     this.confirmHandler = confirmHandler;
@@ -61,6 +64,7 @@ export default class MentionRequest {
   }
 
   private async confirmRequest() {
+    this.isWaiting = false;
     try {
       if (await this.confirmHandler(this)) {
         await this.accept();

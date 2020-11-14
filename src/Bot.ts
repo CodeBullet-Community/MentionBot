@@ -1,7 +1,7 @@
 import {Client, Collection, Message, Snowflake} from 'discord.js';
 
 import Command, {CommandConstructor} from './Command';
-import Force from './commands/Force';
+import Skip from './commands/Skip';
 import Help from './commands/Help';
 import List from './commands/List';
 import Lock from './commands/Lock';
@@ -20,7 +20,7 @@ export default class Bot {
     Lock,
     Unlock,
     Help,
-    Force,
+    Skip,
     Reject,
   ];
 
