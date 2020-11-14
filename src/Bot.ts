@@ -11,6 +11,7 @@ import Reject from './commands/Reject';
 import Unlock from './commands/Unlock';
 import {BotConfig} from './config';
 import GuildData from './GuildData';
+import Force from './commands/Force';
 
 export default class Bot {
   static commandConstructors: CommandConstructor[] = [
@@ -22,6 +23,7 @@ export default class Bot {
     Help,
     Skip,
     Reject,
+    Force,
   ];
 
   readonly prefix: string;
