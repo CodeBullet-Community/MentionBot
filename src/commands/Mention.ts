@@ -109,8 +109,9 @@ export default class Mention extends Command {
     );
     waitMessage
       .awaitReactions(
-        (reaction: MessageReaction, user: User) =>
-          reaction.emoji.name === '❌' && user.id === message.author.id,
+        async (reaction: MessageReaction, user: User) =>
+          reaction.emoji.name === '❌' &&
+          (user.id === message.author.id || data.isController(await guild.members.fetch(user))),
         {max: 1, time: request.remainingTime, errors: ['time']}
       )
       .then(() => request.reject('Canceled while waiting.'))
@@ -167,9 +168,10 @@ export default class Mention extends Command {
       await Promise.all([confMessage.react('❌'), confMessage.react('✅')]);
       try {
         const reactions = await confMessage.awaitReactions(
-          (userReaction: MessageReaction, user: User) =>
+          async (userReaction: MessageReaction, user: User) =>
             (userReaction.emoji.name === '❌' || userReaction.emoji.name === '✅') &&
-            user.id === request.requestMessage.author.id,
+            (user.id === request.requestMessage.author.id ||
+              request.guild.isController(await request.guildObject.members.fetch(user))),
           {max: 1, time: request.guild.confirmReactionTime, errors: ['time']}
         );
         confMessage.delete();
