@@ -89,9 +89,10 @@ export default class Mention extends Command {
     const waitEmbed = new MessageEmbed()
       .setTitle(`Mention request for ${roleName}`)
       .setDescription(
-        `In ${this.secondsToString(roleConfig.wait)} a new confirmation message will appear ` +
-          `that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` +
-          'If you would like to cancel this request, react to this message with `❌`'
+        /* `In ${this.secondsToString(roleConfig.wait)} a new confirmation message will appear ` +
+          `that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` */
+          `In ${this.secondsToString(roleConfig.wait)} the bot will mention <@&${roleConfig.id}>. `+
+          'If you would like to cancel this action, react to this message with `❌`.'
       )
       .setFooter(`Time of confirmation message`)
       .setTimestamp(message.createdTimestamp + roleConfig.wait);
@@ -133,13 +134,13 @@ export default class Mention extends Command {
     if (minutes !== 0) result += `${minutes}min `;
     if (seconds !== 0) result += `${seconds}sec `;
     if (milliseconds !== 0) result += `${milliseconds}ms`;
-    return result;
+    return result.trim();
   }
 
   private async onRequestRejection(request: MentionRequest, reason: string) {
     await this.sendReply(
       request.requestMessage,
-      `Mention request for <@&${request.roleConfig.id}> was rejected for following reason: ${reason}`
+      `Mention request for <@&${request.roleConfig.id}> was rejected for the following reason: ${reason}`
     );
   }
 
@@ -155,6 +156,8 @@ export default class Mention extends Command {
   private confirmRequest(waitMessage: Message) {
     return async (request: MentionRequest) => {
       await waitMessage.delete();
+      // Skips the confirmation message and directly accepts it
+      return true;
       const confMessage = await request.requestMessage.channel.send(
         request.requestMessage.author.toString(),
         new MessageEmbed().setDescription(
