@@ -34,21 +34,21 @@ export default class Mention extends Command {
       return;
     }
 
-    let roleName = args.trim();
+    let roleName = args.trim().toLocaleLowerCase();
     const channelConfig = data.channels.get(message.channel.id);
+    if (!channelConfig) {
+      await this.sendError(
+        message,
+        `This channel has no mentionable roles. Use \`${data.prefix}list\` to see which channels do have mentionable roles.`
+      );
+      return;
+    }
     if (roleName.length === 0) {
-      if (!channelConfig) {
-        await this.sendError(
-          message,
-          `This channel has no mentionable roles. Use \`${data.prefix}list\` to see which channels do have mentionable roles.`
-        );
-        return;
-      }
       if (!channelConfig.default) {
         const roles = channelConfig.roles.map(role => `\`${role}\``).join(', ');
         await this.sendError(
           message,
-          `This channel has no default role. Using \`${data.prefix}mention [name]\` choose one of the following: ${roles}`
+          `This channel has no default role. Use \`${data.prefix}mention [name]\` to choose one of the following: ${roles}`
         );
         return;
       }
@@ -57,10 +57,15 @@ export default class Mention extends Command {
 
     const roleConfig = data.roles.get(roleName);
     if (!roleConfig) {
-      await this.sendError(message, `No role with name \`${roleName}\` is registered.`);
+      const roles = channelConfig.roles.map(role => `\`${role}\``).join(', ');
+      await this.sendError(
+        message,
+        `No role with name \`${roleName}\` is registered. This channel has the following roles: ${roles}. ` +
+          `Use \`${data.prefix}list\` to see the mentionable roles of all channels.`
+      );
       return;
     }
-    if (!channelConfig?.roles.includes(roleName)) {
+    if (!channelConfig.roles.includes(roleName)) {
       const channels = data.channels
         .filter(config => config.roles.includes(roleName))
         .map((_, id) => `<#${id}>`)
@@ -91,7 +96,7 @@ export default class Mention extends Command {
       .setDescription(
         /* `In ${this.secondsToString(roleConfig.wait)} a new confirmation message will appear ` +
           `that needs to be accepted for the bot to then mention <@&${roleConfig.id}>.\n` */
-          `In ${this.secondsToString(roleConfig.wait)} the bot will mention <@&${roleConfig.id}>. `+
+        `In ${this.secondsToString(roleConfig.wait)} the bot will mention <@&${roleConfig.id}>. ` +
           'If you would like to cancel this action, react to this message with `❌`.'
       )
       .setFooter(`Time of confirmation message`)
